@@ -28,6 +28,10 @@
 		6D2929DC212DF00400A950AF /* MLLaunchCtrlCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D2929DA212DF00400A950AF /* MLLaunchCtrlCommand.m */; };
 		6D292A12212E128200A950AF /* MLPlistParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 6D292A10212E128200A950AF /* MLPlistParser.h */; };
 		6D292A13212E128200A950AF /* MLPlistParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D292A11212E128200A950AF /* MLPlistParser.m */; };
+		6D315B73212B023D008B70FF /* NSTabViewItemInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 6D315B71212B023D008B70FF /* NSTabViewItemInfo.h */; };
+		6D315B74212B023D008B70FF /* NSTabViewItemInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D315B72212B023D008B70FF /* NSTabViewItemInfo.m */; };
+		6D315B78212B1375008B70FF /* NSTimeIntervalTransformer.h in Headers */ = {isa = PBXBuildFile; fileRef = 6D315B76212B1375008B70FF /* NSTimeIntervalTransformer.h */; };
+		6D315B79212B1375008B70FF /* NSTimeIntervalTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D315B77212B1375008B70FF /* NSTimeIntervalTransformer.m */; };
 		6D7527AD20CEFBBD00ECAAD2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B3A8258203114AB0062DFEF /* Assets.xcassets */; };
 		6D7527AF20CEFC2F00ECAAD2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B3A8258203114AB0062DFEF /* Assets.xcassets */; };
 		6DB3F5B820D087F20019CB79 /* NSView+Enabled.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DB3F5B620D087F20019CB79 /* NSView+Enabled.h */; };
@@ -80,6 +84,10 @@
 		6D292A0F212E0F4F00A950AF /* MLCommand+internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MLCommand+internal.h"; sourceTree = "<group>"; };
 		6D292A10212E128200A950AF /* MLPlistParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MLPlistParser.h; sourceTree = "<group>"; };
 		6D292A11212E128200A950AF /* MLPlistParser.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MLPlistParser.m; sourceTree = "<group>"; };
+		6D315B71212B023D008B70FF /* NSTabViewItemInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NSTabViewItemInfo.h; sourceTree = "<group>"; };
+		6D315B72212B023D008B70FF /* NSTabViewItemInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NSTabViewItemInfo.m; sourceTree = "<group>"; };
+		6D315B76212B1375008B70FF /* NSTimeIntervalTransformer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NSTimeIntervalTransformer.h; sourceTree = "<group>"; };
+		6D315B77212B1375008B70FF /* NSTimeIntervalTransformer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NSTimeIntervalTransformer.m; sourceTree = "<group>"; };
 		6DB3F5B620D087F20019CB79 /* NSView+Enabled.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSView+Enabled.h"; sourceTree = "<group>"; };
 		6DB3F5B720D087F20019CB79 /* NSView+Enabled.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSView+Enabled.m"; sourceTree = "<group>"; };
 		6DB3F5BA20D092BF0019CB79 /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; };
@@ -148,6 +156,8 @@
 			isa = PBXGroup;
 			children = (
 				6D2929D0212D896400A950AF /* Commands */,
+				6D315B75212B134D008B70FF /* ValueTransformers */,
+				6D315B70212B0218008B70FF /* Tabs */,
 				5B509F9420362265001A2037 /* Presets.plist */,
 				5B3A823D2030ED960062DFEF /* MainPane.h */,
 				5B3A823F2030ED960062DFEF /* MainPane.m */,
@@ -204,6 +214,24 @@
 			path = Commands;
 			sourceTree = "<group>";
 		};
+		6D315B70212B0218008B70FF /* Tabs */ = {
+			isa = PBXGroup;
+			children = (
+				6D315B71212B023D008B70FF /* NSTabViewItemInfo.h */,
+				6D315B72212B023D008B70FF /* NSTabViewItemInfo.m */,
+			);
+			path = Tabs;
+			sourceTree = "<group>";
+		};
+		6D315B75212B134D008B70FF /* ValueTransformers */ = {
+			isa = PBXGroup;
+			children = (
+				6D315B76212B1375008B70FF /* NSTimeIntervalTransformer.h */,
+				6D315B77212B1375008B70FF /* NSTimeIntervalTransformer.m */,
+			);
+			path = ValueTransformers;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -215,7 +243,9 @@
 				5B3A827F203182440062DFEF /* IntegerValueFormatter.h in Headers */,
 				5B3A823E2030ED960062DFEF /* MainPane.h in Headers */,
 				6D2929DB212DF00400A950AF /* MLLaunchCtrlCommand.h in Headers */,
+				6D315B73212B023D008B70FF /* NSTabViewItemInfo.h in Headers */,
 				6D292A12212E128200A950AF /* MLPlistParser.h in Headers */,
+				6D315B78212B1375008B70FF /* NSTimeIntervalTransformer.h in Headers */,
 				6D2929D7212D96A200A950AF /* MLVMwareCommand.h in Headers */,
 				6D2929D3212D898700A950AF /* MLCommand.h in Headers */,
 			);
@@ -366,12 +396,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				6D2929DC212DF00400A950AF /* MLLaunchCtrlCommand.m in Sources */,
+				6D315B74212B023D008B70FF /* NSTabViewItemInfo.m in Sources */,
 				5B3A82402030ED960062DFEF /* MainPane.m in Sources */,
 				6D2929D8212D96A200A950AF /* MLVMwareCommand.m in Sources */,
 				6D2929D4212D898700A950AF /* MLCommand.m in Sources */,
 				6D292A13212E128200A950AF /* MLPlistParser.m in Sources */,
 				6DB3F5B920D087F20019CB79 /* NSView+Enabled.m in Sources */,
 				5B3A8280203182440062DFEF /* IntegerValueFormatter.m in Sources */,
+				6D315B79212B1375008B70FF /* NSTimeIntervalTransformer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

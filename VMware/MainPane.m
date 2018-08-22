@@ -11,25 +11,30 @@
 #import <SecurityInterface/SFAuthorizationView.h>
 #import <sys/xattr.h>
 #import <GitHubRelease/GitHubRelease.h>
+#import "MLVMwareCommand.h"
+#import "MLLaunchCtrlCommand.h"
+#import "NSTabViewItemInfo.h"
 #import "NSView+Enabled.h"
 
 #define TEST_ENVIROMENT (DEBUG && FALSE)
 
-#if TEST_ENVIROMENT
-NSString* const kTestReleaseName        = @"1.2.1";
+#if (TEST_ENVIROMENT)
+NSString* const kTestReleaseName            = @"1.2.1";
 #endif
 
-NSString* const kPresetName             = @"name";
-NSString* const kPresetWidth            = @"width";
-NSString* const kPresetHeight           = @"height";
+NSString* const kPresetName                 = @"name";
+NSString* const kPresetWidth                = @"width";
+NSString* const kPresetHeight               = @"height";
 
-NSString* const kVMWarePrefsAutoHDPI    = @"enableAutoHiDPI";
+NSString* const kVMWarePrefsAutoHDPI        = @"enableAutoHiDPI";
 
 static NSModalResponse const NSModalResponseView        = 1001;
 static NSModalResponse const NSModalResponseDownload    = 1002;
 
 
 @interface MainPane() <MLGitHubReleaseCheckerDelegate>
+
+@property (nonatomic, weak) IBOutlet NSTabView*             tabView;
 
 @property (nonatomic, weak) IBOutlet NSTableView*           presetsTableView;
 @property (nonatomic, weak) IBOutlet NSTextField*           textFieldResX;
@@ -56,6 +61,7 @@ static NSModalResponse const NSModalResponseDownload    = 1002;
     NSMutableDictionary*        _vmWarePreferencesDict;
 }
 
+
 - (instancetype)initWithBundle:(NSBundle *)bundle
 {
     if (self = [super initWithBundle:bundle]) {
@@ -64,11 +70,13 @@ static NSModalResponse const NSModalResponseDownload    = 1002;
     return self;
 }
 
+
 - (void)awakeFromNib
 {
     [super awakeFromNib];
     _forceCheckForUpdate |= [self isOptionsKeyPressed];
 }
+
 
 - (void)mainViewDidLoad
 {
@@ -118,7 +126,7 @@ static NSModalResponse const NSModalResponseDownload    = 1002;
         // On earlier versions (seen on Yosemite) the SFAuthorizationView does
         // not deserialieze from xib correctly, leaving it "empty".
         // If it is empty we know it failed and we can mauallyt create
-        // one to work around it - thank you Apple.
+        // one to work around it - thank you Apple :(
         SFAuthorizationView* authView = [[SFAuthorizationView alloc] initWithFrame:_authorizationView.frame];
         [_authorizationView.superview addSubview:authView];
         [_authorizationView removeFromSuperview];
@@ -133,10 +141,12 @@ static NSModalResponse const NSModalResponseDownload    = 1002;
     [_authorizationView updateStatus:nil];
 }
 
+
 - (void)willSelect
 {
     _forceCheckForUpdate |= [self isOptionsKeyPressed];
 }
+
 
 - (void)didSelect
 {
@@ -170,9 +180,6 @@ static NSModalResponse const NSModalResponseDownload    = 1002;
     [_releaseChecker checkReleaseWithName:releaseName];
 }
 
-- (void)willUnselect
-{
-}
 
 - (float)preferenceWindowWidth
 {
@@ -213,90 +220,37 @@ static NSModalResponse const NSModalResponseDownload    = 1002;
 
 - (void)setScreenSize:(NSSize)size authorization:(SFAuthorization*)authorization
 {
-    NSPipe *pipeError = [NSPipe pipe];
-    NSPipe *pipeOutput = [NSPipe pipe];
-    
-    NSTask *task = [[NSTask alloc] init];
-    task.currentDirectoryPath = @"/Library/Application Support/VMware Tools/";
-    task.launchPath = [task.currentDirectoryPath stringByAppendingPathComponent:@"vmware-resolutionSet"];
-    task.arguments = @[@(size.width).stringValue, @(size.height).stringValue];
-    task.standardError = pipeError;
-    task.standardOutput = pipeOutput;
-    
-    NSError* error = nil;
-    
-    if (@available(macOS 10.13, *)) {
-        if (![task launchAndReturnError:(&error)]) {
-            NSLog (@"ERROR:\n%@", error);
-            NSAlert* alert = [NSAlert alertWithError:error];
-            [alert beginSheetModalForWindow:self.mainView.window completionHandler:nil];
+    [[MLVMwareCommand resolutionSet:size.width height:size.height] executeWithCompletion:^(NSError *error) {
+        if (error != nil) {
+            [self showErrorSheet:error];
             return;
         }
-    }
-    else {
-        [task launch];
-    }
-    
-    [task waitUntilExit];
-    
-    if (task.terminationStatus != 0) {
         
-        // ERROR
-        NSFileHandle *file = pipeError.fileHandleForReading;
-        NSData *data = [file readDataToEndOfFile];
-        [file closeFile];
-        NSString *errorText = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
-        NSLog (@"ERROR (%i):\n%@", task.terminationStatus, errorText);
-        
-        error = [NSError errorWithDomain:NSPOSIXErrorDomain
-                                    code:task.terminationStatus
-                                userInfo:@{ NSLocalizedDescriptionKey: errorText }];
-        
-        NSAlert* alert = [NSAlert alertWithError:error];
-        [alert beginSheetModalForWindow:self.mainView.window completionHandler:nil];
-        return;
-    }
-    
-    // SUCCESS
-    NSFileHandle* file = pipeOutput.fileHandleForReading;
-    NSData* data = [file readDataToEndOfFile];
-    [file closeFile];
-    if (data.length == 0) {
-        // vmware-resolutionSet writes its log to stderr
-        NSFileHandle *file = pipeError.fileHandleForReading;
-        data = [file readDataToEndOfFile];
-        [file closeFile];
-    }
-    NSString *outputText = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    NSLog(@"SUCCESS:\n%@", outputText);
-    
-    if (authorization != nil) {
-        // Make mutable copy - needed to test different extra parameters during development
-        NSMutableArray* args = task.arguments.mutableCopy;
-        
-        // Convert array into void* array.
-        const char **argv = (const char **)malloc(sizeof(char *) * [args count] + 1);
-        int argvIndex = 0;
-        for (NSString *string in task.arguments) {
-            argv[argvIndex] = [string UTF8String];
-            argvIndex++;
+        if (authorization != nil) {
+            
+            const char **argv = (const char **)malloc(sizeof(char *) * (2 + 1));
+            argv[0] = [@(size.width).stringValue UTF8String];
+            argv[1] = [@(size.height).stringValue UTF8String];
+            argv[2] = nil;
+            
+            NSString* launchPath = [kVMwareToolsFolder stringByAppendingPathComponent:kVMwareToolsResolutionSet];
+            
+            // This is depricated - but if it works, it works - and if it works, don't fix it
+            // Anyway, someday I might look a bit more int SMJobBless
+            OSErr processError = AuthorizationExecuteWithPrivileges([authorization authorizationRef],
+                                                                    [launchPath UTF8String],
+                                                                    kAuthorizationFlagDefaults,
+                                                                    (char *const *)argv,
+                                                                    NULL);
+            
+            free(argv);
+            
+            if (processError != errAuthorizationSuccess) {
+                NSLog(@"Error: %d", processError);
+                return;
+            }
         }
-        argv[argvIndex] = nil;
-        
-        // This is depricated - but if it works, it works - and if it works, don't fix it
-        // Anyway, someday I might look a bit more int SMJobBless
-        OSErr processError = AuthorizationExecuteWithPrivileges([authorization authorizationRef],
-                                                                [task.launchPath UTF8String],
-                                                                kAuthorizationFlagDefaults,
-                                                                (char *const *)argv,
-                                                                NULL);
-        free(argv);
-        
-        if (processError != errAuthorizationSuccess) {
-            NSLog(@"Error: %d", processError);
-            return;
-        }
-    }
+    }];
 }
 
 
@@ -376,6 +330,15 @@ static NSModalResponse const NSModalResponseDownload    = 1002;
 }
 
 
+- (void)showErrorSheet:(NSError*)error
+{
+    NSLog (@"ERROR:\n%@", error);
+    NSAlert* alert = [NSAlert alertWithError:error];
+    [alert beginSheetModalForWindow:self.mainView.window completionHandler:nil];
+}
+
+
+
 #pragma mark - MLGitHubReleaseCheckerDelegate
 
 - (void)gitHubReleaseChecker:(MLGitHubReleaseChecker*)sender foundReleaseInfo:(MLGitHubRelease*)releaseInfo
@@ -426,7 +389,7 @@ static NSModalResponse const NSModalResponseDownload    = 1002;
     releaseNoteScrollView.hasHorizontalScroller = YES;
     releaseNoteScrollView.documentView = releaseNoteTextField;
     
-
+    
     // Now create the alert
     NSAlert* alert = [[NSAlert alloc] init];
     alert.alertStyle = NSAlertStyleWarning;
@@ -437,8 +400,8 @@ static NSModalResponse const NSModalResponseDownload    = 1002;
                              sender.currentRelease.name
                              ];
     alert.accessoryView = releaseNoteScrollView;
-
-
+    
+    
     [alert addButtonWithTitle:NSLocalizedString(@"View", -)].tag = NSModalResponseView;
     if (asset != nil) {
         [alert addButtonWithTitle:NSLocalizedString(@"Download", -)].tag = NSModalResponseDownload;
@@ -478,6 +441,44 @@ static NSModalResponse const NSModalResponseDownload    = 1002;
     NSRect screenSize = screen.frame;
     self.currentWidth = [NSNumber numberWithInteger:screenSize.size.width];
     self.currentHeight = [NSNumber numberWithInteger:screenSize.size.height];
+}
+
+
+#pragma mark - NSTabViewDelegate
+
+- (void)tabView:(NSTabView *)tabView willSelectTabViewItem:(nullable NSTabViewItem *)tabViewItem
+{
+    if ([tabViewItem.identifier isEqualToString:@"tab_info"]) {
+        NSTabViewItemInfo* itemInfo = (NSTabViewItemInfo*)tabViewItem;
+        
+        MLVMwareVersionCommand* cmdVersion = [MLVMwareVersionCommand version];
+        [cmdVersion executeWithCompletion:^(NSError *error) {
+            itemInfo.toolsVersion = cmdVersion.version;
+        }];
+        
+        MLVMwareSessionCommand* cmdSession = [MLVMwareSessionCommand session];
+        [cmdSession executeWithCompletion:^(NSError *error) {
+            if (error != nil) {
+                itemInfo.hostVersion = @"N/A";
+                itemInfo.uptime = 0;
+                [self showErrorSheet:error];
+                return;
+            }
+            itemInfo.hostVersion = cmdSession.session[@"version"] ?: @"N/A";
+            itemInfo.uptime = [cmdSession.session[@"uptime"][@"value"] doubleValue] / 1000000.0;
+        }];
+
+        MLLaunchCtrlCommand* cmdLaunchCtrl = [MLLaunchCtrlCommand listService:@"com.vmware.launchd.vmware-tools-userd"];
+        [cmdLaunchCtrl executeWithCompletion:^(NSError *error) {
+            NSInteger pid = [cmdLaunchCtrl.service[@"PID"] integerValue];
+            NSLog(@"%u", pid);
+        }];
+
+
+        
+//        launchctl list
+        
+    }
 }
 
 
